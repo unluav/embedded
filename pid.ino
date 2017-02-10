@@ -13,7 +13,7 @@ int update_pid(PID * pid, float error){
   int time = micros();
   int delta_time = time - pid->last_time;
   int p_correct = pid->p * error;
-  int i_error = (error * delta_time + pid->rolling_error) / 2;
+  int i_error = error * delta_time + pid->rolling_error ;
   int d_correct = (pid->last_error - error) / delta_time * pid->d;
   pid->last_time = time;
   pid->rolling_error = i_error;
