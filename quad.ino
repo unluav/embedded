@@ -1,28 +1,34 @@
 #include <Servo.h>
+#include "imu.h"
+#include "pid.h"
+#include "motors.h"
+
+#define PITCH_P 100.0
+#define PITCH_I 0.0
+#define PITCH_D 0.0
+#define ROLL_P 100.0
+#define ROLL_I 0.0
+#define ROLL_D 0.0
+#define YAW_P 100.0
+#define YAW_I 0.0
+#define YAW_D 0.0
 
 volatile int throttle = 0;
 volatile int pitch = 0;
 volatile int roll = 0;
 volatile int yaw = 0;
 
-struct PID pitch_pid;
-struct PID roll_pid;
-struct PID yaw_pid;
+PID pitch_pid;
+PID roll_pid;
+PID yaw_pid;
 
-struct Orientation init_orientation;
-
-struct motorStruct {
-  int left_front;
-  int right_front;
-  int left_back;
-  int right_back;
-};
+Orientation init_orientation;
 
 void setup() {
   Serial.begin(9600);
-  while(!Serial);
+  // while(!Serial);
   Serial.println("System Setting Up");
-  Serial.println("Attaching Interrupts");
+  Serial.println("Setting Up Reciever");
   setup_reciever();
   Serial.println("Calibrating Motors");
   attach_motors();
@@ -34,21 +40,27 @@ void setup() {
   Serial.println("Setting up IMU");
   imu_initialize();
   Serial.println("Fetching Initial Position");
-  init_orientation = imu_update();
+  init_orientation = current_orientation();
   Serial.println("System Up");
 }
 
 void loop() {
-  struct Orientation error = orientation_diff(init_orientation, current_orientation());
-  int new_pitch = update_pid(pitch_pid, error.pitch) + pitch;
-  Serial.print("New Pitch:\t")
-  Serial.println(new_pitch);
-  int new_roll = update_pid(roll_pid, error.roll) + roll;
-  Serial.print("New Roll:\t")
-  Serial.println(new_roll);
-  int new_yaw = update_pid(yaw_pid, error.yaw) + yaw;
-  Serial.print("New Yaw:\t")
-  Serial.println(new_yaw);
-  struct motorStruct motor_data = create_motor_struct(throttle, new_pitch, new_roll, new_yaw);
+  Orientation current_orient = current_orientation();
+  Orientation error = orientation_diff(&init_orientation, &current_orient);
+  int new_pitch = update_pid(&pitch_pid, error.pitch) + pitch;
+  Serial.print("New Pitch:\t");
+  Serial.print(new_pitch);
+  int new_roll = update_pid(&roll_pid, error.roll) + roll;
+  Serial.print("\tNew Roll:\t");
+  Serial.print(new_roll);
+
+  // Yaw pid is disabled for reasons...
+  //
+  // int new_yaw = update_pid(&yaw_pid, error.yaw) + yaw;
+  // Serial.print("\tNew Yaw:\t");
+  // Serial.println(new_yaw);
+  //
+  motorStruct motor_data = create_motor_struct(throttle, new_pitch, new_roll, 0);
   update_motors(motor_data);
+  delay(250);
 }

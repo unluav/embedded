@@ -7,12 +7,6 @@
 
 Adafruit_BNO055 orient = Adafruit_BNO055();
 
-struct Orientation {
-  float pitch;
-  float roll;
-  float yaw;
-};
-
 void imu_initialize(){
   Serial.println(orient.begin());
   if (!orient.begin()){
@@ -21,19 +15,19 @@ void imu_initialize(){
   }
 }
 
-struct Orientation current_orientation()
-{
+Orientation current_orientation(){
   sensors_event_t event;
   orient.getEvent(&event);
 
+  // heading and roll are swapped because the imu is on wrong
   return {
     .pitch = event.orientation.pitch,
-    .roll = event.orientation.roll,
-    .yaw = event.heading
+    .roll = event.orientation.heading,
+    .yaw = event.orientation.roll
   };
 }
 
-struct Orientation orientation_diff(struct Orientation *x, struct Orientation *y){
+Orientation orientation_diff(Orientation *x, Orientation *y){
   return {
     .pitch = x->pitch - y->pitch,
     .roll = x->roll - y->roll,
