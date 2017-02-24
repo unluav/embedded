@@ -8,9 +8,8 @@
 Adafruit_BNO055 orient = Adafruit_BNO055();
 
 void imu_initialize(){
-  Serial.println(orient.begin());
   if (!orient.begin()){
-    Serial.println("Oops ... unable to initialize the L3GD20. Check your wiring!");
+    LOG("Oops ... unable to initialize the L3GD20. Check your wiring!");
     while (1);
   }
 }

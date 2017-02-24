@@ -48,18 +48,18 @@ int scope_motor_values(int in){
 }
 
 void print_motor_struct(motorStruct data){
-  Serial.print("\nLeft Front:\t");
-  Serial.print(data.left_front);
-  Serial.print("\tRight Front:\t");
-  Serial.print(data.right_front);
-  Serial.print("\tLeft Back:\t");
-  Serial.print(data.left_back);
-  Serial.print("\tRight Back:\t");
-  Serial.println(data.right_back);
+  char motor_string[100];
+  sprintf(motor_string,
+          "\nLeft Front:\t%d\tRight Front:\t%d\tLeft Back:\t%d\tRightBack:\t%d",
+          data.left_front,
+          data.right_front,
+          data.left_back,
+          data.right_back);
+  LOG(motor_string);
 }
 
 void update_motors(motorStruct data){
-  print_motor_struct(data);
+  // print_motor_struct(data);
   left_front_motor.writeMicroseconds(data.left_front);
   right_front_motor.writeMicroseconds(data.right_front);
   left_back_motor.writeMicroseconds(data.left_back);

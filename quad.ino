@@ -1,4 +1,5 @@
 #include <Servo.h>
+#include <string.h>
 #include "imu.h"
 #include "pid.h"
 #include "motors.h"
@@ -13,6 +14,19 @@
 #define YAW_I 0.0
 #define YAW_D 0.0
 
+// #define SERIAL
+#define RADIO
+
+#ifdef SERIAL
+  #define SETUP_LOGGER Serial.begin(9600); while(!Serial);
+  #define LOG(x) Serial.println(x);
+#endif
+
+#ifdef RADIO
+  #define SETUP_LOGGER setup_radio();
+  #define LOG(x) radio_write(x);
+#endif
+
 volatile int throttle = 0;
 volatile int pitch = 0;
 volatile int roll = 0;
@@ -25,34 +39,33 @@ PID yaw_pid;
 Orientation init_orientation;
 
 void setup() {
-  Serial.begin(9600);
-  // while(!Serial);
-  Serial.println("System Setting Up");
-  Serial.println("Setting Up Reciever");
+  SETUP_LOGGER;
+  LOG("System Setting Up");
+  LOG("Setting Up Reciever");
   setup_reciever();
-  Serial.println("Calibrating Motors");
+  LOG("Calibrating Motors");
   attach_motors();
   calibrate_motors();
-  Serial.println("Creating pids");
+  LOG("Creating pids");
   pitch_pid = create_pid(PITCH_P, PITCH_I, PITCH_D);
   roll_pid = create_pid(ROLL_P, ROLL_I, ROLL_D);
   yaw_pid = create_pid(YAW_P, YAW_I, YAW_D);
-  Serial.println("Setting up IMU");
+  LOG("Setting up IMU");
   imu_initialize();
-  Serial.println("Fetching Initial Position");
+  LOG("Fetching Initial Position");
   init_orientation = current_orientation();
-  Serial.println("System Up");
+  LOG("System Up");
 }
 
 void loop() {
   Orientation current_orient = current_orientation();
   Orientation error = orientation_diff(&init_orientation, &current_orient);
   int new_pitch = update_pid(&pitch_pid, error.pitch) + pitch;
-  Serial.print("New Pitch:\t");
-  Serial.print(new_pitch);
   int new_roll = update_pid(&roll_pid, error.roll) + roll;
-  Serial.print("\tNew Roll:\t");
-  Serial.print(new_roll);
+  char status_string[100];
+  sprintf(status_string, "New Pitch:\t%i\tNew Roll:\t%i", new_pitch, new_roll);
+  // char * status_string = strformat("New Pitch:\t%d\tNew Roll:\t%d", new_pitch, new_roll);
+  LOG(status_string);
 
   // Yaw pid is disabled for reasons...
   //
@@ -62,5 +75,5 @@ void loop() {
   //
   motorStruct motor_data = create_motor_struct(throttle, new_pitch, new_roll, 0);
   update_motors(motor_data);
-  delay(250);
+  delay(500);
 }
