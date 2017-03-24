@@ -24,9 +24,9 @@ void setup_reciever() {
 
   delay(2000);
 
-  Serial.println("Calibrating Reciever");
+  LOG("Calibrating Reciever");
   calibrate_reciever();
-  Serial.println("Reciever Calibrated");
+  LOG("Reciever Calibrated");
 }
 
 void calibrate_reciever(){
@@ -70,7 +70,7 @@ void calibrate_reciever(){
   //   }
   // }
 
-  Serial.println("Calibrated Maxes");
+  LOG("Calibrated Maxes");
   // delay(1000);
   int i = 0;
   int p_sum = 0;
@@ -90,12 +90,15 @@ void calibrate_reciever(){
   yaw_mid = y_sum / 10;
   throttle_low = t_sum / 10;
 
-  Serial.print("pitch_mid\t");
-  Serial.println(pitch_mid);
-  Serial.print("roll_mid\t");
-  Serial.println(roll_mid);
-  Serial.print("yaw_mid\t");
-  Serial.println(yaw_mid);
+  char p_string[100];
+  char r_string[100];
+  char y_string[100];
+  sprintf(p_string, "pitch_mid\t%d", pitch_mid);
+  sprintf(r_string, "roll_mid\t%d", roll_mid);
+  sprintf(y_string, "yaw_mid\t%d", yaw_mid);
+  LOG(p_string);
+  LOG(r_string);
+  LOG(y_string);
 }
 
 void rising_kill() {
@@ -105,8 +108,9 @@ void rising_kill() {
 
 void falling_kill(){
   int kill = micros() - kill_time;
-  Serial.print("Kill:\t");
-  Serial.println(kill);
+  char string[100];
+  sprintf(string, "Kill:\t%d", kill);
+  LOG(string);
   attachInterrupt(KILL_RC_PIN, rising_kill, RISING);
   // TODO: KILL LOGIC GOES HERE
 }
